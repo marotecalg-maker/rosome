@@ -1,0 +1,64 @@
+# Codemagic CI/CD — builds Kioku for iOS in the cloud (no Mac required).
+# Docs: https://docs.codemagic.io/yaml-quick-start/
+#
+# TWO workflows:
+#   1) ios-test-build   -> unsigned .app you can run on a Simulator / share for
+#                          quick testing. Needs NO Apple account.
+#   2) ios-appstore     -> signed build that auto-uploads to TestFlight /
+#                          App Store. Needs an Apple Developer account + the
+#                          "app_store_credentials" group configured in Codemagic.
+#
+# To publish you MUST have an Apple Developer Program membership ($99/yr).
+
+workflows:
+  # ------------------------------------------------------------------ #
+  ios-test-build:
+    name: Kioku · iOS test build (unsigned)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Analyze
+        script: flutter analyze || true
+      - name: Build unsigned iOS app
+        script: |
+          flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/iphoneos/*.app
+      - flutter_drive.log
+
+  # ------------------------------------------------------------------ #
+  ios-appstore:
+    name: Kioku · iOS App Store / TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: CodemagicAppStoreKey   # <- create this in Codemagic UI
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.rosoume.kioku      # <- must match your App ID
+      vars:
+        APP_STORE_APPLE_ID: 0000000000            # <- your app's Apple ID (numeric)
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build & sign IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # submit_to_app_store: false   # flip to true for a full release
