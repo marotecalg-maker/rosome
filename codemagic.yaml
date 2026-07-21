@@ -8,7 +8,7 @@ workflows:
       ios_signing:
         bundle_identifier: com.rosoume.kioku
         provisioning_profiles:
-          - rosome
+          - Provisioning_rosome
         certificates:
           - certificate
     scripts:
