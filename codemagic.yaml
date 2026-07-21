@@ -1,18 +1,65 @@
-# Codemagic CI/CD — builds Rosome for iOS in the cloud (no Mac required).
+# Codemagic CI/CD — builds Rosome for iOS / TestFlight (no Mac required).
 # (Flutter project codename is "kioku"; the app's public name is Rosome.)
-# Docs: https://docs.codemagic.io/yaml-quick-start/
 #
-# TWO workflows:
-#   1) ios-test-build  -> unsigned build, runs on a Simulator / for a quick check.
-#                         Needs NO Apple account.
-#   2) ios-appstore    -> signed build, auto-uploads to TestFlight / App Store.
-#                         Needs an Apple Developer Program membership ($99/yr) and
-#                         an App Store Connect API key added in the Codemagic UI.
+# ⚙️ Three names below must MATCH what you create in the Codemagic UI:
+#   1. app_store_connect: <name>  -> your App Store Connect API key integration
+#      (Codemagic → Teams/App settings → Integrations → App Store Connect)
+#   2. provisioning_profiles: <name> -> the distribution provisioning profile
+#      you upload/generate under Code signing identities
+#   3. certificates: <name>          -> the distribution certificate you upload
+#   The app must already exist in App Store Connect with bundle id com.rosoume.kioku.
 
 workflows:
+  testFlight:
+    name: Rosome
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: RosomeAppStore      # ← name of your App Store Connect API key in Codemagic
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        bundle_identifier: com.rosoume.kioku
+        provisioning_profiles:
+          - rosome_profile                   # ← name of your uploaded provisioning profile
+        certificates:
+          - rosome_cert                      # ← name of your uploaded distribution certificate
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Determine next build number
+        script: |
+          #!/bin/sh
+          set -e
+          APP_APPLE_ID=$(app-store-connect apps list --bundle-id-identifier="com.rosoume.kioku" --json | jq -r '.[0].id')
+          LATEST_BUILD_NUMBER=$(app-store-connect get-latest-build-number "$APP_APPLE_ID" --all-versions)
+          NEW_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
+          echo "Latest build number on App Store Connect: $LATEST_BUILD_NUMBER"
+          echo "Using next build number: $NEW_BUILD_NUMBER"
+          echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $CM_ENV
+      - name: Build IPA
+        script: flutter build ipa --release --build-number=$NEW_BUILD_NUMBER --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - marotec.alg@gmail.com            # ← your email for build notifications
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # submit_to_app_store: false         # flip to true for a public release
+
   # ------------------------------------------------------------------ #
+  # Bonus: quick unsigned build — needs NO Apple account. Runs on Simulator.
   ios-test-build:
-    name: Rosome · iOS test build (unsigned)
+    name: Rosome · test build (unsigned)
     instance_type: mac_mini_m2
     max_build_duration: 45
     environment:
@@ -22,45 +69,7 @@ workflows:
     scripts:
       - name: Get packages
         script: flutter pub get
-      - name: Analyze
-        script: flutter analyze || true
       - name: Build unsigned iOS app
         script: flutter build ios --release --no-codesign
     artifacts:
       - build/ios/iphoneos/*.app
-
-  # ------------------------------------------------------------------ #
-  ios-appstore:
-    name: Rosome · iOS App Store / TestFlight
-    instance_type: mac_mini_m2
-    max_build_duration: 60
-    integrations:
-      app_store_connect: CodemagicAppStoreKey   # <- name of the key you add in Codemagic UI
-    environment:
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.rosoume.kioku      # <- must match your App ID
-      vars:
-        APP_STORE_APPLE_ID: 0000000000            # <- your app's numeric Apple ID (from App Store Connect)
-      flutter: stable
-      xcode: latest
-      cocoapods: default
-    scripts:
-      - name: Get packages
-        script: flutter pub get
-      - name: Set up code signing
-        script: xcode-project use-profiles
-      - name: Build & sign IPA
-        script: |
-          # Auto-pick the next build number so TestFlight never rejects a duplicate.
-          BN=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
-          flutter build ipa --release \
-            --build-number=$(($BN + 1)) \
-            --export-options-plist=/Users/builder/export_options.plist
-    artifacts:
-      - build/ios/ipa/*.ipa
-    publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
-        # submit_to_app_store: false   # flip to true when you're ready for a public release
