@@ -1,33 +1,21 @@
-# Codemagic CI/CD — builds Rosome for iOS / TestFlight (no Mac required).
-# (Flutter project codename is "kioku"; the app's public name is Rosome.)
-#
-# ⚙️ Three names below must MATCH what you create in the Codemagic UI:
-#   1. app_store_connect: <name>  -> your App Store Connect API key integration
-#      (Codemagic → Teams/App settings → Integrations → App Store Connect)
-#   2. provisioning_profiles: <name> -> the distribution provisioning profile
-#      you upload/generate under Code signing identities
-#   3. certificates: <name>          -> the distribution certificate you upload
-#   The app must already exist in App Store Connect with bundle id com.rosoume.kioku.
-
 workflows:
   testFlight:
-    name: Rosome
-    instance_type: mac_mini_m2
+    name: ELBOUNI
     integrations:
-      app_store_connect: RosomeAppStore      # ← name of your App Store Connect API key in Codemagic
+      app_store_connect: ELBOUNI
     environment:
       flutter: stable
-      xcode: latest
-      cocoapods: default
       ios_signing:
         bundle_identifier: com.rosoume.kioku
         provisioning_profiles:
-          - rosome_profile                   # ← name of your uploaded provisioning profile
+          - wardrop
         certificates:
-          - rosome_cert                      # ← name of your uploaded distribution certificate
+          - certificate
     scripts:
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles
       - name: Get Flutter packages
-        script: flutter pub get
+        script: flutter packages pub get
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Determine next build number
@@ -47,29 +35,10 @@ workflows:
     publishing:
       email:
         recipients:
-          - marotec.alg@gmail.com            # ← your email for build notifications
+          - a.elbouni1996@gmail.com
         notify:
           success: true
           failure: true
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        # submit_to_app_store: false         # flip to true for a public release
-
-  # ------------------------------------------------------------------ #
-  # Bonus: quick unsigned build — needs NO Apple account. Runs on Simulator.
-  ios-test-build:
-    name: Rosome · test build (unsigned)
-    instance_type: mac_mini_m2
-    max_build_duration: 45
-    environment:
-      flutter: stable
-      xcode: latest
-      cocoapods: default
-    scripts:
-      - name: Get packages
-        script: flutter pub get
-      - name: Build unsigned iOS app
-        script: flutter build ios --release --no-codesign
-    artifacts:
-      - build/ios/iphoneos/*.app
