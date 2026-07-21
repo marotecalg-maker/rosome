@@ -6,11 +6,8 @@ workflows:
     environment:
       flutter: stable
       ios_signing:
+        distribution_type: app_store
         bundle_identifier: com.rosoume.kioku
-        provisioning_profiles:
-          - Provisioning_rosome
-        certificates:
-          - certificate
     scripts:
       - name: Get Flutter packages
         script: flutter packages pub get
@@ -23,7 +20,6 @@ workflows:
           APP_APPLE_ID=$(app-store-connect apps list --bundle-id-identifier="com.rosoume.kioku" --json | jq -r '.[0].id')
           LATEST_BUILD_NUMBER=$(app-store-connect get-latest-build-number "$APP_APPLE_ID" --all-versions)
           NEW_BUILD_NUMBER=$((LATEST_BUILD_NUMBER + 1))
-          echo "Latest build number on App Store Connect: $LATEST_BUILD_NUMBER"
           echo "Using next build number: $NEW_BUILD_NUMBER"
           echo "NEW_BUILD_NUMBER=$NEW_BUILD_NUMBER" >> $CM_ENV
       - name: Build IPA
