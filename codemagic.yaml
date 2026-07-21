@@ -1,0 +1,66 @@
+# Codemagic CI/CD — builds Rosome for iOS in the cloud (no Mac required).
+# (Flutter project codename is "kioku"; the app's public name is Rosome.)
+# Docs: https://docs.codemagic.io/yaml-quick-start/
+#
+# TWO workflows:
+#   1) ios-test-build  -> unsigned build, runs on a Simulator / for a quick check.
+#                         Needs NO Apple account.
+#   2) ios-appstore    -> signed build, auto-uploads to TestFlight / App Store.
+#                         Needs an Apple Developer Program membership ($99/yr) and
+#                         an App Store Connect API key added in the Codemagic UI.
+
+workflows:
+  # ------------------------------------------------------------------ #
+  ios-test-build:
+    name: Rosome · iOS test build (unsigned)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Analyze
+        script: flutter analyze || true
+      - name: Build unsigned iOS app
+        script: flutter build ios --release --no-codesign
+    artifacts:
+      - build/ios/iphoneos/*.app
+
+  # ------------------------------------------------------------------ #
+  ios-appstore:
+    name: Rosome · iOS App Store / TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: CodemagicAppStoreKey   # <- name of the key you add in Codemagic UI
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.rosoume.kioku      # <- must match your App ID
+      vars:
+        APP_STORE_APPLE_ID: 0000000000            # <- your app's numeric Apple ID (from App Store Connect)
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build & sign IPA
+        script: |
+          # Auto-pick the next build number so TestFlight never rejects a duplicate.
+          BN=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          flutter build ipa --release \
+            --build-number=$(($BN + 1)) \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # submit_to_app_store: false   # flip to true when you're ready for a public release
