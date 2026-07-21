@@ -6,8 +6,11 @@ workflows:
     environment:
       flutter: stable
       ios_signing:
-        distribution_type: app_store
         bundle_identifier: com.rosoume.kioku
+        provisioning_profiles:
+          - rosome
+        certificates:
+          - certificate
     scripts:
       - name: Get Flutter packages
         script: flutter packages pub get
