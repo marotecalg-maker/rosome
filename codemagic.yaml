@@ -6,14 +6,9 @@ workflows:
     environment:
       flutter: stable
       ios_signing:
+        distribution_type: app_store
         bundle_identifier: com.rosoume.kioku
-        provisioning_profiles:
-          - wardrop
-        certificates:
-          - certificate
     scripts:
-      - name: Set up code signing settings on Xcode project
-        script: xcode-project use-profiles
       - name: Get Flutter packages
         script: flutter packages pub get
       - name: Set up code signing
