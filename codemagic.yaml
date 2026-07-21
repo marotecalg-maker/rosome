@@ -5,21 +5,17 @@ workflows:
       app_store_connect: ELBOUNI
     environment:
       flutter: stable
+      ios_signing:
+        bundle_identifier: com.rosoume.kioku
+        provisioning_profiles:
+          - wardrop
+        certificates:
+          - certificate
     scripts:
       - name: Get Flutter packages
         script: flutter packages pub get
       - name: Set up code signing
-        script: |
-          #!/bin/sh
-          set -e
-          keychain initialize
-          # Fetch — and CREATE if missing — the distribution certificate and
-          # App Store provisioning profile using the ELBOUNI API key.
-          app-store-connect fetch-signing-files "com.rosoume.kioku" \
-            --type IOS_APP_STORE \
-            --create
-          keychain add-certificates
-          xcode-project use-profiles
+        script: xcode-project use-profiles
       - name: Determine next build number
         script: |
           #!/bin/sh
