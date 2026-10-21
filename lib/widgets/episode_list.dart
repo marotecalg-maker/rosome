@@ -90,7 +90,7 @@ class EpisodesSection extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Consumer<AnimeProvider>(
-          builder: (_, provider, __) {
+          builder: (_, provider, _) {
             final key = match.title ?? heroTitle;
             return Column(
               children: [
@@ -166,12 +166,12 @@ class EpisodesScreen extends StatelessWidget {
             maxLines: 1, overflow: TextOverflow.ellipsis),
       ),
       body: Consumer<AnimeProvider>(
-        builder: (_, provider, __) {
+        builder: (_, provider, _) {
           final key = match.title ?? heroTitle;
           return ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
             itemCount: episodes.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (_, i) {
               final ep = episodes[i];
               return EpisodeTile(

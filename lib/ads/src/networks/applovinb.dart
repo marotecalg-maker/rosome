@@ -25,14 +25,14 @@ class ApplovinAD extends Ads {
   Future<void> init() async {
     bool? isInitialized = await AppLovinMAX.isInitialized();
     if (isInitialized == null || !isInitialized) {
-      await AppLovinMAX.initialize(_applovinData.sdk_key);
-      Log.log('>> Applovin > init' + _applovinData.sdk_key);
+      await AppLovinMAX.initialize(_applovinData.sdkKey);
+      Log.log('>> Applovin > init${_applovinData.sdkKey}');
     }
   }
 
   @override
   Future<void> loadAppOpenAd() async {
-    print("------> ${_applovinData.openAdsId}");
+    Log.log("------> ${_applovinData.openAdsId}");
     AppLovinMAX.setAppOpenAdListener(AppOpenAdListener(
       onAdLoadedCallback: (ad) {},
       onAdLoadFailedCallback: (adUnitId, error) {},
@@ -51,7 +51,7 @@ class ApplovinAD extends Ads {
 
   @override
   void showAdIfAvailableOpenAds() async {
-    print("try showing open ads ----------");
+    Log.log("try showing open ads ----------");
     bool isReady =
         (await AppLovinMAX.isAppOpenAdReady(_applovinData.openAdsId))!;
     if (isReady) {
@@ -76,12 +76,9 @@ class ApplovinAD extends Ads {
         adUnitId: _applovinData.bannerId,
         adFormat: AdFormat.banner,
         listener: AdViewAdListener(onAdLoadedCallback: (ad) {
-          Log.log('Banner widget ad loaded from ' + ad.networkName);
+          Log.log('Banner widget ad loaded from ${ad.networkName}');
         }, onAdLoadFailedCallback: (adUnitId, error) {
-          Log.log('Banner widget ad failed to load with error code ' +
-              error.code.toString() +
-              ' and message: ' +
-              error.message);
+          Log.log('Banner widget ad failed to load with error code ${error.code} and message: ${error.message}');
         }, onAdClickedCallback: (ad) {
           Log.log('Banner widget ad clicked');
         }, onAdExpandedCallback: (ad) {
@@ -109,6 +106,7 @@ class ApplovinAD extends Ads {
     return Container();
   }
 
+  @override
   Future<void> disposeNative(Key key) async {}
 
   // inter
@@ -116,17 +114,13 @@ class ApplovinAD extends Ads {
   Future<void> loadInterstitialAd() async {
     AppLovinMAX.setInterstitialListener(InterstitialListener(
       onAdLoadedCallback: (ad) {
-        Log.log('Interstitial ad loaded from ' + ad.networkName);
+        Log.log('Interstitial ad loaded from ${ad.networkName}');
         _interstitialRetryAttempt = 0;
       },
       onAdLoadFailedCallback: (adUnitId, error) {
         _interstitialRetryAttempt = _interstitialRetryAttempt + 1;
         int retryDelay = pow(2, min(6, _interstitialRetryAttempt)).toInt();
-        Log.log('Interstitial ad failed to load with code ' +
-            error.code.toString() +
-            ' - retrying in ' +
-            retryDelay.toString() +
-            's');
+        Log.log('Interstitial ad failed to load with code ${error.code} - retrying in ${retryDelay}s');
         Future.delayed(Duration(milliseconds: retryDelay * 1000), () {
           AppLovinMAX.loadInterstitial(_applovinData.interId);
         });
@@ -161,17 +155,13 @@ class ApplovinAD extends Ads {
   Future<void> loadRewardAd() async {
     AppLovinMAX.setRewardedAdListener(RewardedAdListener(
         onAdLoadedCallback: (ad) {
-          Log.log('Rewarded ad loaded from ' + ad.networkName);
+          Log.log('Rewarded ad loaded from ${ad.networkName}');
           _rewardedAdRetryAttempt = 0;
         },
         onAdLoadFailedCallback: (adUnitId, error) {
           _rewardedAdRetryAttempt = _rewardedAdRetryAttempt + 1;
           int retryDelay = pow(2, min(6, _rewardedAdRetryAttempt)).toInt();
-          Log.log('Rewarded ad failed to load with code ' +
-              error.code.toString() +
-              ' - retrying in ' +
-              retryDelay.toString() +
-              's');
+          Log.log('Rewarded ad failed to load with code ${error.code} - retrying in ${retryDelay}s');
           Future.delayed(Duration(milliseconds: retryDelay * 1000), () {
             AppLovinMAX.loadRewardedAd(_applovinData.rewardId);
           });

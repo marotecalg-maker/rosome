@@ -198,7 +198,7 @@ class _AnimeDetailScreenState extends State<AnimeDetailScreen> {
                       child: ListView.separated(
                         scrollDirection: Axis.horizontal,
                         itemCount: _related.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 14),
+                        separatorBuilder: (_, _) => const SizedBox(width: 14),
                         itemBuilder: (_, i) => PosterTile(anime: _related[i]),
                       ),
                     ),

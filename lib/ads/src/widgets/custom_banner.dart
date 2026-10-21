@@ -7,7 +7,7 @@ class CustomBanner extends StatefulWidget {
   const CustomBanner({required Key key, required this.ads}) : super(key: key);
 
   @override
-  _CustomBannerState createState() => _CustomBannerState();
+  State<CustomBanner> createState() => _CustomBannerState();
 }
 
 class _CustomBannerState extends State<CustomBanner> {

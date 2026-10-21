@@ -53,7 +53,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         });
       }
     } catch (e) {
-      print('Error initializing app: $e');
+      debugPrint('Error initializing app: $e');
       await Future.delayed(const Duration(seconds: 2), () {
         _showErrorSnackbar(
             'Failed to load configuration. Please check your internet connection.');

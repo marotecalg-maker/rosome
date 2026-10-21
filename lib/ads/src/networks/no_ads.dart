@@ -6,7 +6,9 @@ class NoAds extends Ads {
   @override
   Future<void> init() async {}
 
+  @override
   Future<void> loadAppOpenAd() async {}
+  @override
   void showAdIfAvailableOpenAds() {}
   @override
   Future<void> loadBannerAd(Function? onLoaded, Key key) async {}

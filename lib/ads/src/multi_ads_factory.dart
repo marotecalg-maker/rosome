@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import '../networks.dart';
 import 'data/ads_data.dart';
-import 'globals/networkIndex.dart';
+import 'globals/network_index.dart';
 import 'networks/admob.dart';
 import 'networks/ads.dart';
 import 'networks/applovinb.dart';
@@ -17,10 +17,10 @@ class MultiAds {
   final _networks = <String>{};
 
   void _fillNetworks() {
-    adsData.settings.banners.forEach((banner) => _networks.add(banner));
-    adsData.settings.inters.forEach((inter) => _networks.add(inter));
-    adsData.settings.nativees.forEach((nativee) => _networks.add(nativee));
-    adsData.settings.rewards.forEach((reward) => _networks.add(reward));
+    for (final banner in adsData.settings.banners) { _networks.add(banner); }
+    for (final inter in adsData.settings.inters) { _networks.add(inter); }
+    for (final nativee in adsData.settings.nativees) { _networks.add(nativee); }
+    for (final reward in adsData.settings.rewards) { _networks.add(reward); }
     _networks.add(adsData.settings.openads);
     Log.log("filled networks: $_networks");
   }

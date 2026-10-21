@@ -10,7 +10,7 @@ class CustomNative extends StatefulWidget {
       : super(key: key);
 
   @override
-  _CustomNativeState createState() => _CustomNativeState();
+  State<CustomNative> createState() => _CustomNativeState();
 }
 
 class _CustomNativeState extends State<CustomNative> {

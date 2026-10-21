@@ -100,19 +100,19 @@ class AdmobAD extends Ads {
     //   print('Tried to show ad while already showing an ad.');
     //   return;
     // }
-    print("------> Showing AppOpenAd ----------------");
+    Log.log("------> Showing AppOpenAd ----------------");
     _appOpenAd!.fullScreenContentCallback = FullScreenContentCallback(
       onAdShowedFullScreenContent: (ad) {
-        print("------> AppOpenAd showed successfully ----------------");
+        Log.log("------> AppOpenAd showed successfully ----------------");
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
-        print("------> AppOpenAd failed to show: $error ----------------");
+        Log.log("------> AppOpenAd failed to show: $error ----------------");
         ad.dispose();
         _appOpenAd = null;
         loadAppOpenAd();
       },
       onAdDismissedFullScreenContent: (ad) {
-        print("------> AppOpenAd dismissed ----------------");
+        Log.log("------> AppOpenAd dismissed ----------------");
         ad.dispose();
         _appOpenAd = null;
         loadAppOpenAd();
@@ -197,21 +197,17 @@ class AdmobAD extends Ads {
       _rewardIndex = 0;
     }
     Log.log(">> admob > loadRewardAd > _admobData.rewardIds[_rewardIndex]");
-    print(">> admob > loadRewardAd > _admobData.rewardIds[_rewardIndex]");
     return RewardedAd.load(
       adUnitId: _admobData.rewardIds[_rewardIndex],
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
-          print(">> admob > loadRewardAd > _admobData.rewardIds[_rewardIndex]");
           Log.log('Admob >> $ad loaded.');
           _rewardedAd = ad;
           _numRewardedLoadAttempts = 0;
         },
         onAdFailedToLoad: (LoadAdError error) {
           Log.log('Admob >> RewardedAd failed to load:$error ');
-          print(
-              ">> admob > loadRewardAd > _admobData.rewardIds[_rewardIndex] $error");
           _rewardedAd = null;
           _numRewardedLoadAttempts += 1;
           if (_numRewardedLoadAttempts <= _maxAttempts) {
